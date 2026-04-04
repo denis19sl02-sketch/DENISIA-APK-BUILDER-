@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>DENISIA APK CONSOLE 7.0</title>
+    <style>
+        body { background: #000; color: #00eaff; font-family: 'Courier New', monospace; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .box { width: 95%; max-width: 800px; border: 3px solid #00eaff; padding: 20px; box-shadow: 0 0 20px #00eaff; background: #050505; }
+        h1 { text-align: center; text-shadow: 0 0 10px #00eaff; }
+        input, textarea { width: 100%; background: #111; border: 1px solid #00eaff; color: #0f0; margin: 10px 0; padding: 12px; box-sizing: border-box; outline: none; }
+        button { width: 100%; padding: 20px; font-weight: bold; cursor: pointer; margin: 10px 0; border: none; font-size: 1.1em; transition: 0.3s; }
+        .btn-build { background: #00eaff; color: #000; }
+        .btn-load { background: #ff00ff; color: #fff; }
+        button:hover { opacity: 0.8; box-shadow: 0 0 15px white; }
+        #preview { width: 80px; height: 80px; border: 1px solid #00eaff; display: none; margin: 10px auto; border-radius: 10px; }
+        #status { text-align: center; font-weight: bold; margin-top: 10px; color: yellow; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>DENISIA APK BUILDER</h1>
+    
+    <label>ИМЯ ПРИЛОЖЕНИЯ:</label>
+    <input type="text" id="appName" placeholder="Название...">
+
+    <label>ИКОНКА (ИЗ ГАЛЕРЕИ):</label>
+    <input type="file" id="iconInput" accept="image/*" onchange="previewIcon()">
+    <img id="preview" src="#">
+
+    <label>HTML / JS КОД:</label>
+    <textarea id="appCode" rows="12" placeholder="Вставь код сюда..."></textarea>
+
+    <button class="btn-build" onclick="saveAndBuild()">СОХРАНИТЬ И СОБРАТЬ APK</button>
+    <button class="btn-load" onclick="loadProject()">РЕДАКТИРОВАТЬ (ЗАГРУЗИТЬ С СЕРВЕРА)</button>
+    
+    <div id="status">ГОТОВ К РАБОТЕ</div>
+    
+    <div id="downloadZone" style="display:none; margin-top:20px; border:1px dashed #00eaff; padding:15px; text-align:center;">
+        <p>ПРОЕКТ ОБНОВЛЕН НА СЕРВЕРЕ!</p>
+        <a id="apkLink" href="#" style="color:#fff; font-weight:bold; font-size:1.2em;">СКАЧАТЬ ОБНОВЛЕННЫЙ ПАКЕТ</a>
+    </div>
+</div>
+
+<script>
+    let iconBase64 = "";
+    const BIN_URL = "https://api.jsonbin.io/v3/b/69d0c72936566621a87a4ee9";
+    const API_KEY = "$2a$10$piBi/4TcAsEwd6rVS6q7/OeIoKMgU9X6ygr6GEpmvK/M5dDBQ/I8y";
+
+    function previewIcon() {
+        const file = document.getElementById('iconInput').files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const img = document.getElementById('preview');
+            img.src = reader.result;
+            img.style.display = "block";
+            iconBase64 = reader.result;
+        };
+        if (file) reader.readAsDataURL(file);
+    }
+
+    // СОХРАНЕНИЕ И ОБНОВЛЕНИЕ (РЕАЛЬНАЯ ЗАПИСЬ НА СЕРВЕР)
+    async function saveAndBuild() {
+        const name = document.getElementById('appName').value;
+        const code = document.getElementById('appCode').value;
+        const status = document.getElementById('status');
+
+        if (!name || !code) return alert("Заполни поля!");
+
+        status.innerText = "ОБНОВЛЕНИЕ СЕРВЕРА...";
+
+        const payload = {
+            name: name,
+            html: code,
+            icon: iconBase64,
+            last_build: new Date().toLocaleString()
+        };
+
+        try {
+            const res = await fetch(BIN_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                status.innerText = "УСПЕШНО СОХРАНЕНО!";
+                document.getElementById('downloadZone').style.display = "block";
+                // Ссылка на скачивание данных (пока это данные для твоего базового APK)
+                document.getElementById('apkLink').href = BIN_URL + "/latest?meta=false";
+                alert("Проект '" + name + "' обновлен! Твой планшет подхватит изменения.");
+            }
+        } catch (e) { status.innerText = "ОШИБКА СВЯЗИ!"; }
+    }
+
+    // РЕДАКТИРОВАНИЕ (ЗАГРУЗКА ДАННЫХ ОБРАТНО В ПОЛЯ)
+    async function loadProject() {
+        const status = document.getElementById('status');
+        status.innerText = "ЗАГРУЗКА ПРОЕКТА...";
+
+        try {
+            const res = await fetch(BIN_URL + "/latest", {
+                headers: { 'X-Master-Key': API_KEY }
+            });
+            const data = await res.json();
+            const project = data.record;
+
+            document.getElementById('appName').value = project.name;
+            document.getElementById('appCode').value = project.html;
+            if (project.icon) {
+                const img = document.getElementById('preview');
+                img.src = project.icon;
+                img.style.display = "block";
+                iconBase64 = project.icon;
+            }
+            status.innerText = "ПРОЕКТ ЗАГРУЖЕН ДЛЯ РЕДАКТИРОВАНИЯ";
+        } catch (e) { status.innerText = "ОШИБКА ЗАГРУЗКИ!"; }
+    }
+</script>
+
+</body>
+</html>
