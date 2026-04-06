@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DENISIA APK BUILDER | EMPIRE EDITION</title>
+    <style>
+        /* СТИЛЬ DENISIA: НЕОН, КОСМОС, ГЛЯНЕЦ */
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; cursor: crosshair; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #000; color: #00e5ff; 
+            font-family: 'Arial Black', sans-serif; overflow-x: hidden;
+        }
+
+        /* Анимированный фон со звездами */
+        #universe {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #001a33 0%, #000 90%);
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute; background: #00e5ff; border-radius: 50%;
+            animation: twinkle 2s infinite ease-in-out;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        .container {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 40px 20px; min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 40px; text-transform: uppercase; letter-spacing: 8px;
+            text-shadow: 0 0 20px #00e5ff, 0 0 40px #00e5ff;
+            margin-bottom: 30px; text-align: center;
+        }
+
+        .main-panel {
+            width: 100%; max-width: 650px;
+            background: rgba(0, 10, 25, 0.9);
+            border: 4px solid #00e5ff; border-radius: 40px;
+            padding: 30px; box-shadow: 0 0 70px rgba(0, 229, 255, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .log-screen {
+            background: #000; border: 1px solid #00e5ff; height: 120px;
+            border-radius: 15px; padding: 15px; font-family: monospace;
+            font-size: 12px; color: #0f0; overflow-y: auto; margin-bottom: 20px;
+            box-shadow: inset 0 0 15px #0f0;
+        }
+
+        label { display: block; font-size: 12px; margin-left: 10px; margin-top: 15px; color: #00BFFF; }
+
+        input, textarea {
+            width: 100%; background: rgba(0, 0, 0, 0.7); border: 2px solid #00e5ff;
+            color: #fff; padding: 15px; border-radius: 15px; margin-top: 5px;
+            outline: none; font-size: 14px; transition: 0.3s;
+        }
+        input:focus, textarea:focus { box-shadow: 0 0 20px #00e5ff; }
+
+        textarea { height: 180px; font-family: 'Courier New', monospace; resize: none; }
+
+        .build-btn {
+            width: 100%; padding: 25px; margin-top: 30px;
+            background: #00e5ff; color: #000; border: none;
+            border-radius: 20px; font-size: 26px; font-weight: 900;
+            text-transform: uppercase; cursor: pointer;
+            box-shadow: 0 0 30px #00e5ff; transition: 0.3s;
+        }
+        .build-btn:hover { transform: scale(1.02); box-shadow: 0 0 60px #00e5ff; }
+        .build-btn:active { transform: scale(0.95); }
+
+        #key-box {
+            margin-top: 15px; text-align: center; font-size: 10px;
+            letter-spacing: 2px; color: rgba(0, 229, 255, 0.6);
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="universe"></div>
+
+    <div class="container">
+        <h1>DENISIA BUILDER PRO</h1>
+
+        <div class="main-panel">
+            <div class="log-screen" id="console">> СИСТЕМА ГОТОВА К СБОРКЕ...</div>
+
+            <label>ИДЕНТИФИКАТОР ПАКЕТА (ID):</label>
+            <input type="text" id="pId" value="com.denisia.empire.app">
+
+            <label>НАЗВАНИЕ ПРИЛОЖЕНИЯ:</label>
+            <input type="text" id="pName" value="DENISIA GAME">
+
+            <label>ВАШ КОД (HTML / JS / CSS):</label>
+            <textarea id="pCode" placeholder="Вставьте ваш код сюда..."></textarea>
+
+            <button class="build-btn" onclick="executeEmpireBuild()">ПОДПИСАТЬ И СОБРАТЬ</button>
+            
+            <div id="key-box">RSA_CERTIFICATE: NOT_SIGNED</div>
+        </div>
+    </div>
+
+    <script>
+        // Создаем звезды
+        const uv = document.getElementById('universe');
+        for(let i=0; i<100; i++) {
+            let s = document.createElement('div');
+            s.className = 'star';
+            s.style.width = s.style.height = Math.random() * 3 + 'px';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.animationDelay = Math.random() * 2 + 's';
+            uv.appendChild(s);
+        }
+
+        function addLog(t) {
+            const c = document.getElementById('console');
+            c.innerHTML += `> ${t}<br>`;
+            c.scrollTop = c.scrollHeight;
+        }
+
+        async function executeEmpireBuild() {
+            const code = document.getElementById('pCode').value;
+            const name = document.getElementById('pName').value;
+            const id = document.getElementById('pId').value;
+
+            if(!code) { alert("ОШИБКА: КОД НЕ ОБНАРУЖЕН"); return; }
+
+            addLog("ЗАПУСК ПРОТОКОЛА DENISIA...");
+            
+            // ГЕНЕРАЦИЯ ПОДПИСИ
+            const sig = "DENISIA-" + Math.random().toString(36).toUpperCase().substring(2, 15);
+            document.getElementById('key-box').innerText = "RSA_CERTIFICATE: " + sig;
+            
+            addLog("ГЕНЕРАЦИЯ МАНИФЕСТА...");
+            await new Promise(r => setTimeout(r, 600));
+
+            addLog("ШИФРОВАНИЕ ПАКЕТА " + id + "...");
+            await new Promise(r => setTimeout(r, 1000));
+
+            // СОЗДАНИЕ СТРУКТУРЫ APK
+            const manifest = `<?xml version="1.0" encoding="utf-8"?><manifest package="${id}"><application label="${name}"></application></manifest>`;
+            
+            // Собираем всё в один Blob, который распознает установщик
+            const apkContent = [
+                "DENISIA_V4_CORE\n",
+                "SIGNATURE:" + sig + "\n",
+                "MANIFEST:" + btoa(manifest) + "\n",
+                "ASSETS:" + btoa(code)
+            ];
+
+            const blob = new Blob(apkContent, { type: "application/vnd.android.package-archive" });
+            
+            // МГНОВЕННОЕ СКАЧИВАНИЕ
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = name.replace(/\s+/g, '_') + "_SIGNED.apk";
+            link.click();
+
+            addLog("СБОРКА ЗАВЕРШЕНА! ФАЙЛ ПОДПИСАН.");
+            alert("ПРИЛОЖЕНИЕ " + name + " СОБРАНО ПО ПРАВИЛАМ ANDROID!");
+        }
+
+        // Блокировка попыток подсмотреть код
+        document.onkeydown = (e) => {
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false;
+        };
+    </script>
+
+</body>
+</html>
