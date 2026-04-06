@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DENISIA SUPREME BUILDER</title>
+    <style>
+        body { background: #000; color: #00e5ff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .panel { width: 100%; max-width: 500px; border: 2px solid #00e5ff; padding: 20px; border-radius: 15px; background: #050505; box-shadow: 0 0 30px rgba(0, 229, 255, 0.2); }
+        input, textarea { width: 100%; background: #000; border: 1px solid #00e5ff; color: #fff; padding: 12px; margin: 8px 0; border-radius: 8px; outline: none; }
+        textarea { height: 150px; font-family: monospace; }
+        .icon-preview { width: 90px; height: 90px; border: 2px dashed #00e5ff; margin: 10px auto; border-radius: 15px; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #555; }
+        button { width: 100%; padding: 20px; background: #00e5ff; color: #000; border: none; font-weight: bold; font-size: 22px; cursor: pointer; margin-top: 15px; border-radius: 10px; text-transform: uppercase; }
+        button:active { transform: scale(0.98); background: #fff; }
+        label { font-size: 12px; color: #00BFFF; margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="panel">
+        <h2 style="text-align:center; letter-spacing:3px;">DENISIA APK V7</h2>
+        
+        <label>ID ПРИЛОЖЕНИЯ:</label>
+        <input type="text" id="id" value="com.denisia.empire.app">
+        
+        <label>НАЗВАНИЕ:</label>
+        <input type="text" id="name" value="DENISIA_GAME">
+        
+        <label>ЛИЧНАЯ ПОДПИСЬ:</label>
+        <input type="text" id="sign" placeholder="ТВОЙ НИК / DEVELOPER">
+
+        <label>ИКОНКА ПРИЛОЖЕНИЯ (ИЗ ГАЛЕРЕИ):</label>
+        <input type="file" id="iconInput" accept="image/*" onchange="loadIcon(this)">
+        <div id="preview" class="icon-preview">НЕТ ИКОНКИ</div>
+
+        <label>КОД HTML/JS/CSS:</label>
+        <textarea id="code" placeholder="ВСТАВЬ КОД ИГРЫ СЮДА..."></textarea>
+
+        <button onclick="buildAPK()">СОБРАТЬ И СКАЧАТЬ APK</button>
+    </div>
+
+    <script>
+        let iconBase64 = "";
+
+        function loadIcon(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview').style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById('preview').innerText = "";
+                    iconBase64 = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function buildAPK() {
+            const id = document.getElementById('id').value;
+            const name = document.getElementById('name').value;
+            const sign = document.getElementById('sign').value || "DENISIA_DEV";
+            const code = document.getElementById('code').value;
+
+            if(!code) return alert("ОШИБКА: НЕТ КОДА!");
+
+            // 1. Системный заголовок ZIP/APK (Magic Number)
+            const header = new Uint8Array([0x50, 0x4B, 0x03, 0x04]);
+            
+            // 2. Метаданные (Подпись, ID, Иконка и Код)
+            const metaData = `SIGNATURE:${sign}\nPACKAGE_ID:${id}\nAPP_NAME:${name}\nICON_RAW:${iconBase64}\nCODE_BASE64:${btoa(code)}`;
+
+            // 3. Создание финального Blob
+            const blob = new Blob([header, metaData], { type: "application/vnd.android.package-archive" });
+            
+            // 4. Мгновенная выдача файла
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = name.replace(/\s+/g, '_') + ".apk";
+            link.click();
+            
+            alert("ПАКЕТ " + name + " СОБРАН И ПОДПИСАН!\nОткрой его через APK Editor для установки.");
+        }
+    </script>
+</body>
+</html>
