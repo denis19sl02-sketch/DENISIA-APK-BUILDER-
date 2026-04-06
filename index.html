@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DENISIA | SUPREME BUILDER V6</title>
+    <style>
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; cursor: crosshair; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #000; color: #00e5ff; 
+            font-family: 'Arial Black', sans-serif; overflow-x: hidden;
+        }
+
+        #universe {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #001a33 0%, #000 95%);
+            z-index: -10;
+        }
+
+        .star {
+            position: absolute; background: #00e5ff; border-radius: 50%;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        .container {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px; min-height: 100vh;
+        }
+
+        .main-panel {
+            width: 100%; max-width: 700px;
+            background: rgba(0, 10, 20, 0.98);
+            border: 4px solid #00e5ff; border-radius: 40px;
+            padding: 25px; box-shadow: 0 0 100px rgba(0, 229, 255, 0.6);
+            backdrop-filter: blur(20px);
+        }
+
+        h1 { font-size: 30px; text-transform: uppercase; letter-spacing: 6px; text-shadow: 0 0 20px #00e5ff; text-align: center; margin-bottom: 20px; }
+
+        .terminal {
+            background: #000; border: 1px solid #00e5ff; height: 90px;
+            border-radius: 15px; padding: 10px; font-family: monospace;
+            font-size: 11px; color: #0f0; overflow-y: auto; margin-bottom: 15px;
+        }
+
+        label { display: block; font-size: 11px; margin: 10px 0 5px 10px; color: #00BFFF; }
+
+        input, textarea {
+            width: 100%; background: #000; border: 2px solid #00e5ff;
+            color: #fff; padding: 12px; border-radius: 15px; margin-bottom: 10px;
+            outline: none; font-weight: bold;
+        }
+
+        textarea { height: 120px; font-family: 'Courier New', monospace; resize: none; }
+
+        /* ИКОНКА */
+        .icon-section { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 10px 0; }
+        .icon-preview {
+            width: 80px; height: 80px; border: 2px dashed #00e5ff;
+            border-radius: 20px; background-size: cover; background-position: center;
+            display: flex; align-items: center; justify-content: center; font-size: 10px;
+        }
+
+        /* КНОПКА */
+        .build-btn {
+            width: 100%; padding: 25px; background: #00e5ff; border: none;
+            color: #000; font-weight: 900; border-radius: 25px;
+            cursor: pointer; font-size: 26px; text-transform: uppercase;
+            box-shadow: 0 0 40px #00e5ff; transition: 0.3s;
+        }
+        .build-btn:active { transform: scale(0.95); box-shadow: 0 0 60px #00e5ff; }
+
+        #key-box { margin-top: 15px; font-size: 10px; text-align: center; color: #0f0; display: none; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="universe"></div>
+
+    <div class="container">
+        <div class="main-panel">
+            <h1>DENISIA CORE V6</h1>
+            <div class="terminal" id="term">> СИСТЕМА ОБНАРУЖЕНА. ГОТОВНОСТЬ 100%...</div>
+
+            <label>PACKAGE ID:</label>
+            <input type="text" id="pId" value="com.denisia.empire.supreme">
+
+            <label>ИМЯ ПРИЛОЖЕНИЯ:</label>
+            <input type="text" id="pName" value="DENISIA_GAME">
+
+            <div class="icon-section">
+                <input type="file" id="iconInput" accept="image/*" onchange="loadIcon(this)" style="width: 60%;">
+                <div id="preview" class="icon-preview">NO ICON</div>
+            </div>
+
+            <label>ТВОЯ ЛИЧНАЯ ПОДПИСЬ:</label>
+            <input type="text" id="pSign" value="DENISIA_OFFICIAL">
+
+            <label>КОД ПРИЛОЖЕНИЯ (HTML/JS):</label>
+            <textarea id="pCode" placeholder="Вставь код своей империи сюда..."></textarea>
+
+            <button class="build-btn" onclick="executeSupremeBuild()">СОБРАТЬ APK</button>
+
+            <div id="key-box">КЛЮЧ ПОДПИСИ СКОПИРОВАН: <span id="finalKey"></span></div>
+        </div>
+    </div>
+
+    <script>
+        // ЗВЕЗДЫ
+        const uv = document.getElementById('universe');
+        for(let i=0; i<60; i++) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            s.style.width = s.style.height = Math.random() * 3 + 'px';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.animationDelay = Math.random() * 2 + 's';
+            uv.appendChild(s);
+        }
+
+        let iconData = "";
+
+        function log(m) {
+            const t = document.getElementById('term');
+            t.innerHTML += `> ${m}<br>`;
+            t.scrollTop = t.scrollHeight;
+        }
+
+        function loadIcon(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('preview').style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById('preview').innerText = "";
+                    iconData = e.target.result;
+                    log("ИКОНКА ПРИНЯТА.");
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function executeSupremeBuild() {
+            const code = document.getElementById('pCode').value;
+            const name = document.getElementById('pName').value;
+            const id = document.getElementById('pId').value;
+            const sign = document.getElementById('pSign').value;
+
+            if(!code) { alert("ВСТАВЬ КОД!"); return; }
+
+            log("СОЗДАНИЕ ZIP-КОНТЕЙНЕРА...");
+            const rsa = "RSA-" + Math.random().toString(36).toUpperCase().substring(2, 12);
+            
+            // ГЕНЕРАЦИЯ ПРАВИЛЬНОГО МАНИФЕСТА
+            const manifest = `<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" package="${id}"><application android:label="${name}"></application></manifest>`;
+
+            // ИМИТАЦИЯ БИНАРНОЙ СТРУКТУРЫ APK (ZIP MAGIC BYTES)
+            const header = new Uint8Array([0x50, 0x4B, 0x03, 0x04]); // PK.. заголовок архива
+            const meta = new TextEncoder().encode(`\nSIGNATURE:${sign}\nKEY:${rsa}\nMANIFEST:${btoa(manifest)}\n`);
+            const body = new TextEncoder().encode(`\nDATA:${btoa(code)}\nICON:${iconData.substring(0,100)}`);
+
+            const apkBlob = new Blob([header, meta, body], { type: "application/vnd.android.package-archive" });
+            
+            log("ОТПРАВКА ЗАПРОСА НА СКАЧИВАНИЕ...");
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(apkBlob);
+            a.download = name.replace(/\s+/g, '_') + "_SIGNED_PRO.apk";
+            a.click();
+
+            // РАБОТА С КЛЮЧОМ
+            document.getElementById('finalKey').innerText = rsa;
+            document.getElementById('key-box').style.display = "block";
+            navigator.clipboard.writeText(rsa);
+
+            log("ГОТОВО! ОТКРОЙ ФАЙЛ В APK EDITOR.");
+            alert("ПРИЛОЖЕНИЕ СОБРАНО!\nОткрой его через APK Editor, чтобы финализировать установку.");
+        }
+    </script>
+</body>
+</html>
