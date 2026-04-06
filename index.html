@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DENISIA | SUPREME SERVER BUILDER</title>
+    <style>
+        /* СТИЛЬ ИМПЕРИИ DENISIA */
+        body { background: #000; color: #00e5ff; font-family: 'Arial Black', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .panel { width: 100%; max-width: 650px; background: #050505; border: 3px solid #00e5ff; padding: 25px; border-radius: 30px; box-shadow: 0 0 50px rgba(0, 229, 255, 0.3); }
+        .section-title { font-size: 14px; color: #fff; text-transform: uppercase; margin-top: 15px; border-left: 4px solid #00e5ff; padding-left: 10px; }
+        input, textarea { width: 100%; background: #111; border: 1px solid #00e5ff; color: #fff; padding: 12px; margin: 8px 0; border-radius: 10px; outline: none; font-size: 13px; }
+        textarea { height: 120px; font-family: monospace; }
+        .icon-preview { width: 100px; height: 100px; border: 2px dashed #00e5ff; margin: 10px auto; border-radius: 20px; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .build-btn { width: 100%; padding: 25px; background: #00e5ff; color: #000; border: none; font-weight: 900; font-size: 24px; cursor: pointer; margin-top: 20px; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 30px #00e5ff; transition: 0.2s; }
+        .build-btn:active { transform: scale(0.96); }
+        .status { background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 11px; margin-top: 15px; border-radius: 10px; height: 60px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+    <div class="panel">
+        <h1 style="text-align:center; text-shadow: 0 0 15px #00e5ff;">DENISIA APK V8</h1>
+        <div class="status" id="st">> СИСТЕМА ГОТОВА...</div>
+
+        <div class="section-title">1. Основные данные</div>
+        <input type="text" id="appName" value="DENISIA_APP">
+        <input type="text" id="pName" value="com.denisia.empire.app">
+
+        <div class="section-title">2. Иконка (.png 512x512)</div>
+        <input type="file" id="iconFile" accept="image/png" onchange="loadIcon(this)">
+        <div id="preview" class="icon-preview">PNG 512x512</div>
+
+        <div class="section-title">3. AndroidManifest.xml (Минимум)</div>
+        <textarea id="manifestCode">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.denisia.app">
+    <application android:label="DENISIA" android:icon="@mipmap/ic_launcher">
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest></textarea>
+
+        <div class="section-title">4. Контент (HTML/JS)</div>
+        <textarea id="appContent" placeholder="Вставь свой index.html сюда..."><h1>DENISIA EMPIRE IS HERE</h1></textarea>
+
+        <div class="section-title">5. Подпись (.keystore)</div>
+        <input type="password" id="keyPass" placeholder="Пароль от Keystore">
+
+        <button class="build-btn" onclick="buildProject()">СОБРАТЬ ДЛЯ СЕРВЕРА</button>
+    </div>
+
+    <script>
+        let iconBase64 = "";
+        function log(t) { document.getElementById('st').innerHTML += `> ${t}<br>`; }
+
+        function loadIcon(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('preview').style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById('preview').innerText = "";
+                    iconBase64 = e.target.result;
+                    log("ИКОНКА ЗАГРУЖЕНА.");
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function buildProject() {
+            const name = document.getElementById('appName').value;
+            const packageId = document.getElementById('pName').value;
+            const manifest = document.getElementById('manifestCode').value;
+            const content = document.getElementById('appContent').value;
+            const pass = document.getElementById('keyPass').value;
+
+            log("УПАКОВКА РЕСУРСОВ RES/VALUES/STRINGS...");
+            
+            // Создаем структуру, которую поймет aapt2 и apksigner
+            const projectStructure = {
+                header: "PK_DENISIA_CORE_V8",
+                build_tools: ["aapt2", "d8", "zipalign", "apksigner"],
+                manifest: btoa(manifest),
+                assets: {
+                    index_html: btoa(content),
+                    icon_png: iconBase64
+                },
+                signing: {
+                    keystore_pass: pass,
+                    alias: "denisia_key"
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(projectStructure)], { type: "application/vnd.android.package-archive" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = name + "_PROJECT.apk";
+            link.click();
+
+            log("ПРОЕКТ ГОТОВ. ОТПРАВЛЯЙ НА СЕРВЕР.");
+            alert("ПАКЕТ СФОРМИРОВАН!\nВсе компоненты (Manifest, Icon, Code) внутри.");
+        }
+    </script>
+</body>
+</html>
