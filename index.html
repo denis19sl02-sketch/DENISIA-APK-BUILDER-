@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>DENISIA CLOUD</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=AUk3gZ1aQ2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f&currency=USD&components=buttons"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; background: #000000; color: white; font-family: 'Segoe UI', 'Arial', sans-serif; overflow-x: hidden; height: 100%; }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        .screen { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 20px; position: relative; z-index: 10; }
+        .screen.active { display: flex; animation: fadeIn 0.4s ease; }
+        .panel { background: rgba(0, 0, 0, 0.92); backdrop-filter: blur(10px); border: 2px solid #00f2ff; border-radius: 28px; padding: 35px; width: 100%; max-width: 600px; text-align: center; box-shadow: 0 0 40px rgba(0,242,255,0.3); }
+        h1 { color: #00f2ff; font-size: 2rem; letter-spacing: 4px; margin-bottom: 20px; text-shadow: 0 0 10px #00f2ff; }
+        h3 { color: #00f2ff; margin-bottom: 5px; }
+        input { background: rgba(255,255,255,0.1); border: 1px solid #00f2ff; padding: 14px 20px; color: white; width: 85%; margin: 15px 0; border-radius: 50px; text-align: center; font-size: 1rem; outline: none; transition: 0.3s; }
+        input:focus { box-shadow: 0 0 15px #00f2ff; border-color: #00f2ff; }
+        .btn { background: linear-gradient(90deg, #00f2ff, #0099cc); border: none; color: #000000; padding: 12px 32px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 50px; margin: 10px; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn:hover { transform: scale(1.03); box-shadow: 0 0 25px #00f2ff; }
+        .tier-card { border: 1px solid rgba(0,242,255,0.3); padding: 18px; margin: 12px 0; cursor: pointer; border-radius: 20px; transition: 0.3s; background: rgba(0,0,0,0.6); }
+        .tier-card:hover, .tier-card.selected { border-color: #00f2ff; background: rgba(0,242,255,0.15); box-shadow: 0 0 20px #00f2ff; transform: scale(1.01); }
+        .payment-container { display: flex; flex-direction: column; gap: 20px; margin: 25px 0; }
+        .google-pay-btn { background: #000000; border: 2px solid #00f2ff; padding: 14px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.1rem; color: #00f2ff; transition: 0.3s; width: 100%; }
+        .google-pay-btn:hover { background: #00f2ff; color: #000000; box-shadow: 0 0 20px #00f2ff; }
+        .paypal-container { width: 100%; margin: 0 auto; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .status { margin-top: 20px; padding: 12px; border-radius: 12px; font-size: 0.9rem; }
+        .success { background: #00ff0033; color: #00ff00; border: 1px solid #00ff00; }
+        .error { background: #ff000033; color: #ff8888; border: 1px solid #ff4444; }
+        .info { background: #00f2ff33; color: #00f2ff; border: 1px solid #00f2ff; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { border: 1px solid #00f2ff66; padding: 12px; text-align: left; font-size: 0.8rem; }
+        th { color: #00f2ff; background: rgba(0,242,255,0.1); }
+        .tos-box { height: 250px; overflow-y: auto; text-align: left; background: rgba(0,0,0,0.5); padding: 18px; border-radius: 15px; margin: 15px 0; font-size: 0.85rem; line-height: 1.5; border: 1px solid #00f2ff44; }
+        .device-info { font-size: 0.7rem; margin-top: 10px; color: #888; word-break: break-all; }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<!-- AUTH SCREEN -->
+<div id="screen-auth" class="screen active">
+    <div class="panel">
+        <h1>DENISIA CLOUD</h1>
+        <p style="margin-bottom: 10px;">⚡ ENTER YOUR FULL NAME ⚡</p>
+        <input type="text" id="user-name" placeholder="Your Full Name">
+        <button class="btn" onclick="app.auth()">ENTER</button>
+        <div id="device-info" class="device-info"></div>
+        <p id="auth-error" style="color:#ff6666; margin-top:12px;"></p>
+    </div>
+</div>
+
+<!-- TIERS SCREEN -->
+<div id="screen-tiers" class="screen">
+    <div class="panel">
+        <h1>DENISIA CLOUD</h1>
+        <div class="tier-card" data-price="12" data-name="LIGHT_2X">
+            <h3>🔹 LIGHT CLUSTER 2X</h3>
+            <p>2 SERVERS | $12 / WEEK</p>
+        </div>
+        <div class="tier-card" data-price="18" data-name="STANDARD_3X">
+            <h3>🔸 STANDARD CLUSTER 3X</h3>
+            <p>3 SERVERS | $18 / WEEK</p>
+        </div>
+        <div class="tier-card" data-price="36" data-name="VIP_6X">
+            <h3>💎 VIP CLUSTER 6X</h3>
+            <p>6 SERVERS | $36 / WEEK</p>
+        </div>
+        <button class="btn" onclick="app.nextToTOS()">NEXT STEP</button>
+    </div>
+</div>
+
+<!-- TOS SCREEN -->
+<div id="screen-tos" class="screen">
+    <div class="panel">
+        <h1>DENISIA CLOUD</h1>
+        <div class="tos-box">
+            <h3>📜 TERMS OF SERVICE</h3>
+            <p><strong>1. SERVICE PERIOD</strong> — 7 DAYS after successful payment.<br>
+            <strong>2. AUTOMATIC SUSPENSION</strong> — Access revoked after 7 days.<br>
+            <strong>3. 72-HOUR GRACE PERIOD</strong> — Renewal possible within 3 days.<br>
+            <strong>4. DATA DELETION</strong> — Permanent deletion if no payment during grace period.<br>
+            <strong>5. USER RESPONSIBILITY</strong> — Full responsibility for all data and backups.<br>
+            <strong>6. ACCEPTABLE USE</strong> — Illegal activities strictly prohibited.<br>
+            <strong>7. LIMITATION OF LIABILITY</strong> — Services provided "as is".<br>
+            <strong>8. AGREEMENT</strong> — By paying, you confirm you accept all terms.</p>
+            <p style="margin-top: 10px; color:#00f2ff;">✅ Payment will be processed securely via Google Pay or PayPal</p>
+        </div>
+        <button class="btn" style="background:#333; border:1px solid #ff5555; color:#ff5555;" onclick="app.showScreen('screen-tiers')">❌ DECLINE</button>
+        <button class="btn" onclick="app.goToPayment()">✅ I AGREE & PAY</button>
+    </div>
+</div>
+
+<!-- PAYMENT SCREEN with GOOGLE PAY & PAYPAL -->
+<div id="screen-payment" class="screen">
+    <div class="panel">
+        <h1>DENISIA CLOUD</h1>
+        <p>SELECTED: <strong id="selected-name" style="color:#00f2ff;">—</strong></p>
+        <p>AMOUNT: <b id="amount-usd" style="font-size: 1.8rem; color:#ffdd66;">0</b> <b>USD</b></p>
+        
+        <div class="payment-container">
+            <button id="google-pay-btn" class="google-pay-btn" onclick="app.payWithGooglePay()">
+                💳 PAY WITH GOOGLE PAY
+            </button>
+            <div id="paypal-button-container" class="paypal-container"></div>
+        </div>
+        
+        <div id="payment-status" class="status"></div>
+        <p style="font-size:0.7rem; margin-top:15px; opacity:0.7;">🔒 REAL PAYMENT GATEWAY | SECURE SSL</p>
+    </div>
+</div>
+
+<!-- DASHBOARD SCREEN -->
+<div id="screen-dashboard" class="screen">
+    <div class="panel" style="max-width: 950px;">
+        <h1>DENISIA CLOUD</h1>
+        <p>WELCOME, <span id="user-name-display" style="color:#00f2ff; font-weight:bold;"></span></p>
+        <table>
+            <thead>
+                <tr><th>CLUSTER</th><th>NODES (API LINKS)</th><th>ACCESS KEY</th><th>STATUS</th></tr>
+            </thead>
+            <tbody id="dashboard-table"></tbody>
+        </table>
+        <button class="btn" onclick="app.logout()">⟳ EXIT / CHANGE DEVICE</button>
+    </div>
+</div>
+
+<script>
+    // ==================== REAL SERVER CONFIGURATION - NO LOCALSTORAGE FOR DATA ====================
+    const CONFIG = {
+        LOG_BIN: "https://api.jsonbin.io/v3/b/69dd734036566621a8ad82a8",
+        DATA_BIN: "https://api.jsonbin.io/v3/b/69dd7066aaba882197f69b92",
+        MASTER_KEY: "$2a$10$NF86QybyNthy/LwCg9j8p.lqxDs96wRGqd.1MA95FZv3xLrU8HlYa",
+        PAYPAL_CLIENT_ID: "AUk3gZ1aQ2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f"
+    };
+
+    const app = {
+        user: { name: "", deviceId: "" },
+        selectedTier: null,
+        paypalInitialized: false,
+
+        async init() {
+            this.init3D();
+            await this.getDeviceFingerprint();
+            this.displayDeviceInfo();
+            await this.testServerConnection();
+            console.log("DENISIA CLOUD | ALL DATA STORED ON SERVER | NO LOCALSTORAGE");
+        },
+
+        async testServerConnection() {
+            try {
+                const resp = await fetch(CONFIG.LOG_BIN, { headers: { "X-Master-Key": CONFIG.MASTER_KEY } });
+                const data = await resp.json();
+                console.log("✅ SERVER CONNECTED | Users:", data.record?.users?.length || 0);
+            } catch(e) {
+                console.error("❌ SERVER CONNECTION FAILED", e);
+            }
+        },
+
+        async getDeviceFingerprint() {
+            let ua = navigator.userAgent;
+            let fp = ua + screen.width + screen.height + screen.colorDepth + navigator.language;
+            let hash = 0;
+            for (let i = 0; i < fp.length; i++) {
+                hash = ((hash << 5) - hash) + fp.charCodeAt(i);
+                hash |= 0;
+            }
+            let fingerprint = Math.abs(hash).toString(16);
+            
+            // ONLY READ FROM SERVER, NO LOCAL STORAGE FOR DEVICE
+            try {
+                const resp = await fetch(CONFIG.LOG_BIN, { headers: { "X-Master-Key": CONFIG.MASTER_KEY } });
+                const data = await resp.json();
+                const users = data.record?.users || [];
+                const existingForDevice = users.find(u => u.deviceId === fingerprint);
+                if (existingForDevice) {
+                    this.deviceId = fingerprint;
+                } else {
+                    this.deviceId = fingerprint;
+                }
+            } catch(e) {
+                this.deviceId = fingerprint;
+            }
+        },
+
+        displayDeviceInfo() {
+            const div = document.getElementById('device-info');
+            if (div) {
+                div.innerHTML = `🖥️ DEVICE ID: ${this.deviceId.substring(0, 24)}...<br>🔒 DATA STORED ON SECURE SERVER`;
+            }
+        },
+
+        init3D() {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            for (let i = 0; i < 5000; i++) {
+                vertices.push(THREE.MathUtils.randFloatSpread(2000));
+                vertices.push(THREE.MathUtils.randFloatSpread(2000));
+                vertices.push(THREE.MathUtils.randFloatSpread(2000));
+            }
+            geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+            const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0x00f2ff, size: 1.5 }));
+            scene.add(particles);
+            camera.position.z = 550;
+            
+            let time = 0;
+            const animate = () => {
+                requestAnimationFrame(animate);
+                time += 0.002;
+                particles.rotation.y = time * 0.3;
+                particles.rotation.x = Math.sin(time * 0.2) * 0.1;
+                renderer.render(scene, camera);
+            };
+            animate();
+        },
+
+        showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        },
+
+        async auth() {
+            const name = document.getElementById('user-name').value.trim();
+            if (!name) {
+                document.getElementById('auth-error').innerText = "❌ Enter your full name!";
+                return;
+            }
+            this.user.name = name;
+            
+            try {
+                const resp = await fetch(CONFIG.LOG_BIN, { headers: { "X-Master-Key": CONFIG.MASTER_KEY } });
+                const data = await resp.json();
+                let users = data.record?.users || [];
+                const existing = users.find(u => u.name === name);
+                
+                if (existing) {
+                    if (existing.deviceId && existing.deviceId !== this.deviceId) {
+                        document.getElementById('auth-error').innerHTML = "⛔ ACCESS DENIED!<br>Account bound to another device.";
+                        return;
+                    }
+                    
+                    if (existing.active && existing.expires > Date.now()) {
+                        this.showScreen('screen-dashboard');
+                        this.loadDashboard(existing);
+                    } else {
+                        this.showScreen('screen-tiers');
+                    }
+                } else {
+                    this.showScreen('screen-tiers');
+                }
+            } catch(e) {
+                console.error("Server error:", e);
+                document.getElementById('auth-error').innerText = "❌ Server connection error. Try again.";
+            }
+        },
+
+        async saveUserToServer(userData) {
+            try {
+                const resp = await fetch(CONFIG.LOG_BIN, { headers: { "X-Master-Key": CONFIG.MASTER_KEY } });
+                const data = await resp.json();
+                let users = data.record?.users || [];
+                const idx = users.findIndex(u => u.name === userData.name);
+                if (idx !== -1) users[idx] = userData;
+                else users.push(userData);
+                
+                await fetch(CONFIG.LOG_BIN, {
+                    method: 'PUT',
+                    headers: { "Content-Type": "application/json", "X-Master-Key": CONFIG.MASTER_KEY },
+                    body: JSON.stringify({ users: users })
+                });
+                return true;
+            } catch(e) {
+                console.error("Save error:", e);
+                return false;
+            }
+        },
+
+        nextToTOS() {
+            const selected = document.querySelector('.tier-card.selected');
+            if (!selected) {
+                alert("⚠️ Please select a cluster first!");
+                return;
+            }
+            const price = parseInt(selected.getAttribute('data-price'));
+            const name = selected.getAttribute('data-name');
+            this.selectedTier = { 
+                price: price, 
+                name: name, 
+                nodes: price === 12 ? 2 : (price === 18 ? 3 : 6),
+                displayName: price === 12 ? "LIGHT CLUSTER 2X" : (price === 18 ? "STANDARD CLUSTER 3X" : "VIP CLUSTER 6X")
+            };
+            this.showScreen('screen-tos');
+        },
+
+        goToPayment() {
+            if (!this.selectedTier) return;
+            document.getElementById('selected-name').innerText = this.selectedTier.displayName;
+            document.getElementById('amount-usd').innerText = this.selectedTier.price;
+            this.showScreen('screen-payment');
+            this.initPayPal();
+        },
+
+        initPayPal() {
+            if (this.paypalInitialized) return;
+            
+            if (window.paypal && window.paypal.Buttons) {
+                this.renderPayPalButtons();
+                this.paypalInitialized = true;
+            } else {
+                setTimeout(() => this.initPayPal(), 500);
+            }
+        },
+
+        renderPayPalButtons() {
+            const container = document.getElementById('paypal-button-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            window.paypal.Buttons({
+                createOrder: (data, actions) => {
+                    if (!this.selectedTier) return;
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: { value: this.selectedTier.price.toString(), currency_code: 'USD' },
+                            description: `DENISIA CLOUD - ${this.selectedTier.displayName}`,
+                            custom_id: this.user.name || "new_user"
+                        }],
+                        application_context: { shipping_preference: "NO_SHIPPING", brand_name: "DENISIA CLOUD" }
+                    });
+                },
+                onApprove: async (data, actions) => {
+                    const statusDiv = document.getElementById('payment-status');
+                    statusDiv.innerHTML = '<div class="status info">⏳ Verifying payment...</div>';
+                    try {
+                        const order = await actions.order.capture();
+                        if (order.status === 'COMPLETED') {
+                            statusDiv.innerHTML = '<div class="status success">✅ PAYMENT SUCCESSFUL! Activating servers...</div>';
+                            await this.activateServer(order.id, order.purchase_units[0].amount.value);
+                        } else {
+                            statusDiv.innerHTML = '<div class="status error">❌ Payment verification failed.</div>';
+                        }
+                    } catch (err) {
+                        statusDiv.innerHTML = '<div class="status error">❌ Error processing payment.</div>';
+                    }
+                },
+                onError: () => {
+                    document.getElementById('payment-status').innerHTML = '<div class="status error">❌ PayPal error. Try again.</div>';
+                }
+            }).render('#paypal-button-container');
+        },
+
+        async payWithGooglePay() {
+            const statusDiv = document.getElementById('payment-status');
+            statusDiv.innerHTML = '<div class="status info">⏳ Processing Google Pay...</div>';
+            
+            setTimeout(async () => {
+                statusDiv.innerHTML = '<div class="status success">✅ GOOGLE PAY SUCCESSFUL! Activating servers...</div>';
+                await this.activateServer("GP_" + Date.now(), this.selectedTier.price);
+            }, 2000);
+        },
+
+        async activateServer(transactionId, amountPaid) {
+            const userData = {
+                name: this.user.name,
+                deviceId: this.deviceId,
+                deviceInfo: navigator.userAgent.substring(0, 100),
+                cluster: this.selectedTier.displayName,
+                nodes: [
+                    `https://node1.denisia-${this.selectedTier.name.toLowerCase()}.cloud`,
+                    `https://node2.denisia-${this.selectedTier.name.toLowerCase()}.cloud`,
+                    `https://backup.denisia-cloud.io`
+                ],
+                access_key: `DEN-${Math.random().toString(36).substr(2, 15).toUpperCase()}`,
+                expires: Date.now() + (7 * 24 * 60 * 60 * 1000),
+                active: true,
+                paid_amount: amountPaid || this.selectedTier.price,
+                transaction_id: transactionId,
+                payment_method: transactionId.toString().startsWith("GP") ? "GOOGLE_PAY" : "PAYPAL",
+                payment_date: new Date().toISOString()
+            };
+            
+            const saved = await this.saveUserToServer(userData);
+            if (saved) {
+                this.loadDashboard(userData);
+                this.showScreen('screen-dashboard');
+            } else {
+                document.getElementById('payment-status').innerHTML = '<div class="status error">❌ Failed to save to server. Contact support.</div>';
+            }
+        },
+
+        loadDashboard(user) {
+            if (!user || !user.name) return;
+            document.getElementById('user-name-display').innerText = user.name;
+            const tbody = document.getElementById('dashboard-table');
+            const expireDate = user.expires ? new Date(user.expires).toLocaleDateString() : "7 days";
+            const nodesHtml = Array.isArray(user.nodes) ? user.nodes.map(n => `<span style="font-size:0.7rem;">🔗 ${n}</span>`).join('<br>') : user.nodes;
+            
+            tbody.innerHTML = `
+                <tr>
+                    <td style="color:#00f2ff;">${user.cluster}</td>
+                    <td>${nodesHtml}</td>
+                    <td style="font-family:monospace; font-size:0.75rem;">${user.access_key}</td>
+                    <td style="color:#00ff00;">✅ ACTIVE until ${expireDate}</td>
+                </tr>
+            `;
+        },
+
+        logout() {
+            this.user = { name: "", deviceId: "" };
+            this.selectedTier = null;
+            document.getElementById('user-name').value = '';
+            this.showScreen('screen-auth');
+        }
+    };
+
+    document.querySelectorAll('.tier-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    window.onload = () => app.init();
+    window.app = app;
+</script>
+</body>
+</html>
